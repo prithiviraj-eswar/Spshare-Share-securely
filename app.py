@@ -1,3 +1,4 @@
+
 # Prithiviraj Eswaramoorthy
 # 1001860633
 
@@ -86,7 +87,7 @@ class RegisterForm(FlaskForm):
     firstname = StringField(validators=[
                            InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Firstname"})
     lastname = StringField(validators=[
-                           InputRequired()], render_kw={"placeholder": "Lastname"})
+                           InputRequired(), Length(min=4, max=20)], render_kw={"placeholder": "Lastname"})
 
     password = PasswordField(validators=[
                              InputRequired(), Length(min=8, max=20)], render_kw={"placeholder": "Password"})
@@ -222,6 +223,7 @@ def adminDashboard():
 
 # admin get all user 
 @app.route('/admin/get-all-user', methods=["POST","GET"])
+@login_required
 def adminGetAllUser():
     if not session.get('admin_id'):
         return redirect('/admin/')
@@ -234,6 +236,7 @@ def adminGetAllUser():
         return render_template('admin/all-user.html',title='Approve User',users=users)
 
 @app.route('/user/fetch-all-groups', methods=["POST","GET"])
+@login_required
 def fetchAllgroups():
     # if not session.get('admin_id'):
     #     return redirect('/dashboard')
@@ -252,18 +255,21 @@ def fetchAllgroups():
         return render_template('all-groups.html',groups=groups)
 
 @app.route('/user/viewmygroups', methods=["POST","GET"])
+@login_required
 def viewmygroups():
     form = uploadForm()
     groups=GroupUsers.query.filter(GroupUsers.username.like('%'+current_user.username+'%')).all()
     return render_template('mygroups.html',groups=groups, form=form)
 
 @app.route('/user/groupfunctions', methods=["POST","GET"])
+@login_required
 def grpfunc():
     if request.method == 'GET':
         return render_template('groupfunctions.html')
     return render_template('groupfunctions.html')
 
 @app.route('/user/view-grp-users', methods=["POST","GET"])
+@login_required
 def viewgroupusers():
     # if not session.get('admin_id'):
     #     return redirect('/dashboard')
@@ -342,7 +348,9 @@ def files():
     print(gname)
     if user.username == current_user.username:
         items = Upload.query.filter(Upload.groupname.like('%'+gname+'%')).all()
-    return render_template('files.html',items = items,form=form)
+        return render_template('files.html',items = items,form=form)
+    return render_template('files.html',form=form)
+
 
 
 @app.route('/download/<int:id>', methods=['GET'])
@@ -357,6 +365,15 @@ def show():
     for i in dbpic: 
         picture = b64encode(i.data).decode("utf-8")
     return render_template("viewimages.html", dbpic=dbpic, picture=picture)
+
+#delete files
+@app.route('/delete/<upload_id>', methods=['POST'])
+@login_required
+def delete(upload_id):
+    temp_delete=Upload.query.filter_by(id=upload_id).first()
+    db.session.delete(temp_delete)
+    db.session.commit()
+    return render_template("files.html")
 
 
 if __name__ == "__main__":

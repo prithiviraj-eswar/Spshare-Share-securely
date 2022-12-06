@@ -16,6 +16,9 @@
             <li>
                 {{item.filename.rsplit('.', 1)[0]}} | <a href={{url_for('download', id = item.id)  }}>Download</a>
             </li>
+            <li>
+            |  |<form method="POST" action="/delete/{{item.id}}"><button>delete</button></form>
+            </li>
         </ul>
         {% endfor %}
     </div>
